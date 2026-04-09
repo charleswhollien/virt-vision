@@ -1,0 +1,71 @@
+<% content_for :title, "Add Host" %>
+
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Hosts".html_safe, hosts_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Add New Host</h1>
+
+  <% if @host.errors.any? %>
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+      <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+        <% @host.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= form_with model: @host, local: true, class: "space-y-4", data: { turbo: false } do |f| %>
+      <div>
+        <%= f.label :name, "Display Name", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "Production KVM Host" %>
+        <% if @host.errors[:name].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:name].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :hostname, "Hostname or IP", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :hostname, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "192.168.1.100" %>
+        <% if @host.errors[:hostname].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:hostname].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :ssh_user, "SSH Username", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :ssh_user, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "root" %>
+        <% if @host.errors[:ssh_user].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:ssh_user].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :ssh_key_path, "SSH Key Path (on server)", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :ssh_key_path, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "/root/.ssh/id_ed25519" %>
+        <p class="mt-1 text-sm text-gray-500">Path to the SSH private key on the Rails server for connecting to this host</p>
+      </div>
+
+      <div>
+        <%= f.label :connection_uri, "Connection URI (optional)", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :connection_uri, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", placeholder: "qemu+ssh://root@192.168.1.100/system" %>
+      </div>
+
+      <div class="pt-4">
+        <%= f.submit "Add Host", class: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <h3 class="text-sm font-medium text-blue-900">SSH Key Setup</h3>
+    <p class="mt-1 text-sm text-blue-700">
+      Make sure the SSH public key is added to <code class="bg-blue-100 px-1 rounded">~/.ssh/authorized_keys</code> on the remote host.
+      The web server user must be able to read the private key file specified above.
+    </p>
+  </div>
+</div>

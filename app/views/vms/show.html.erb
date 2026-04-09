@@ -1,0 +1,130 @@
+<% content_for :title, @vm.name %>
+
+<div class="mb-6">
+  <%= link_to "&larr; Back to VMs".html_safe, vms_path, class: "text-blue-600 hover:underline" %>
+</div>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900"><%= @vm.name %></h1>
+  <div class="flex gap-3">
+    <% if @vm.running? %>
+      <%= link_to "Console", console_vm_path(@vm), class: "px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors" %>
+      <%= button_to "Shutdown", shutdown_vm_path(@vm), method: :post, class: "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors" %>
+      <%= button_to "Reboot", reboot_vm_path(@vm), method: :post, class: "px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors" %>
+      <%= button_to "Pause", pause_vm_path(@vm), method: :post, class: "px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors" %>
+    <% elsif @vm.stopped? %>
+      <%= button_to "Start", start_vm_path(@vm), method: :post, class: "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" %>
+    <% elsif @vm.paused? %>
+      <%= button_to "Resume", resume_vm_path(@vm), method: :post, class: "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" %>
+    <% end %>
+    <%= button_to "Destroy (Force)", vm_path(@vm), method: :delete, class: "px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors", form: { data: { confirm: "Force power off #{@vm.name}? This may cause data loss." } } %>
+  </div>
+</div>
+
+<!-- VM Info Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-sm font-medium text-gray-500">Status</h3>
+    <p class="mt-2">
+      <span class="px-3 py-1 text-sm rounded-full <%=
+        'bg-green-100 text-green-800' if @vm.running? %> <%=
+        'bg-yellow-100 text-yellow-800' if @vm.paused? %> <%=
+        'bg-red-100 text-red-800' if @vm.stopped? || @vm.crashed? %>">
+        <%= @vm.status %>
+      </span>
+    </p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-sm font-medium text-gray-500">CPU</h3>
+    <p class="mt-2 text-lg font-semibold text-gray-900"><%= @vm.cpu_count %> cores</p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-sm font-medium text-gray-500">Memory</h3>
+    <p class="mt-2 text-lg font-semibold text-gray-900"><%= number_to_human_size(@vm.memory_mb.to_i * 1024 * 1024) %></p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-sm font-medium text-gray-500">UUID</h3>
+    <p class="mt-2 text-xs font-mono text-gray-600 break-all"><%= @vm.uuid %></p>
+  </div>
+</div>
+
+<!-- Host Info -->
+<div class="bg-white rounded-lg shadow mb-8">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <h2 class="text-lg font-semibold text-gray-900">Host</h2>
+  </div>
+  <div class="p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="font-medium text-gray-900"><%= @host.name %></p>
+        <p class="text-sm text-gray-500"><%= @host.hostname %></p>
+      </div>
+      <%= link_to "View Host", host_path(@host), class: "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" %>
+    </div>
+  </div>
+</div>
+
+<!-- Disk Info -->
+<% if @vm.disk_info.present? %>
+  <div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Disk Devices</h2>
+    </div>
+    <div class="p-6">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Target</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% JSON.parse(@vm.disk_info).each do |disk| %>
+            <tr>
+              <td class="px-4 py-3 text-sm font-medium text-gray-900"><%= disk["target"] %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= disk["source"] %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= disk["type"] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>
+
+<!-- Network Info -->
+<% if @vm.network_info.present? %>
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Network Interfaces</h2>
+    </div>
+    <div class="p-6">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interface</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Model</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">MAC</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% JSON.parse(@vm.network_info).each do |iface| %>
+            <tr>
+              <td class="px-4 py-3 text-sm font-medium text-gray-900"><%= iface["interface"] %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= iface["type"] %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= iface["source"] %></td>
+              <td class="px-4 py-3 text-sm text-gray-500"><%= iface["model"] %></td>
+              <td class="px-4 py-3 text-sm font-mono text-gray-500"><%= iface["mac"] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

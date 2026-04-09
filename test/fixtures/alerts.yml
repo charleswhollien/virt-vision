@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  condition_type: MyString
+  threshold: 9.99
+  enabled: false
+  notification_channel: MyString
+
+two:
+  name: MyString
+  condition_type: MyString
+  threshold: 9.99
+  enabled: false
+  notification_channel: MyString

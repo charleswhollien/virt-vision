@@ -1,0 +1,170 @@
+<% content_for :title, "Console - #{@vm.name}" %>
+
+<div class="mb-4">
+  <%= link_to "&larr; Back to #{@vm.name}".html_safe, vm_path(@vm), class: "text-blue-600 hover:underline" %>
+</div>
+
+<% if @console_info && @console_info[:type] == "spice" %>
+  <div class="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
+    <h3 class="text-lg font-semibold text-red-900 mb-2">SPICE Console Not Supported in Web Browser</h3>
+    <p class="text-red-700 mb-4">
+      This VM uses <strong>SPICE</strong> graphics, which requires a native client. The web console only supports VNC.
+    </p>
+    <div class="bg-red-100 rounded-lg p-4 mb-4">
+      <h4 class="text-sm font-medium text-red-900 mb-2">Option 1: Use SPICE Client (Recommended)</h4>
+      <p class="text-sm text-red-700 mb-2">Install virt-viewer and connect directly:</p>
+      <code class="bg-white px-3 py-2 rounded block text-sm font-mono">
+        remote-viewer <%= @console_info[:url] %>
+      </code>
+      <p class="text-xs text-red-600 mt-2">Requires: <code>sudo apt install virt-viewer</code></p>
+    </div>
+    <div class="bg-red-100 rounded-lg p-4">
+      <h4 class="text-sm font-medium text-red-900 mb-2">Option 2: Reconfigure VM for VNC</h4>
+      <p class="text-sm text-red-700 mb-2">To use the web console, change the VM graphics to VNC:</p>
+      <ol class="text-sm text-red-700 list-decimal list-inside space-y-1">
+        <li>Shutdown the VM</li>
+        <li>Edit VM: <code>virsh edit windows11</code></li>
+        <li>Change &lt;graphics type='spice'&gt; to &lt;graphics type='vnc' port='-1'/&gt;</li>
+        <li>Start the VM</li>
+      </ol>
+    </div>
+  </div>
+<% elsif @console_info.nil? %>
+  <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+    <h3 class="text-lg font-semibold text-yellow-900">No Console Available</h3>
+    <p class="text-yellow-700">
+      This VM doesn't have graphics configured. Make sure the VM is running and has a display device.
+    </p>
+  </div>
+<% else %>
+  <div class="bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+    <div class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-semibold text-white"><%= @vm.name %> Console</h2>
+        <p class="text-sm text-gray-400">Host: <%= @host.hostname %>:<%= @vnc_port %> &rarr; localhost:<%= @ws_port %></p>
+      </div>
+      <div class="flex gap-2">
+        <button id="fullscreenBtn" class="px-3 py-1.5 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors">
+          Fullscreen
+        </button>
+        <button id="ctrlAltDelBtn" class="px-3 py-1.5 bg-red-700 text-white text-sm rounded hover:bg-red-600 transition-colors">
+          Ctrl+Alt+Del
+        </button>
+      </div>
+    </div>
+
+    <div id="console-container" class="relative" style="height: 600px;">
+      <div id="loading" class="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p class="text-gray-400">Connecting to console...</p>
+        </div>
+      </div>
+      <div id="screen" class="w-full h-full"></div>
+    </div>
+  </div>
+
+  <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <h4 class="text-sm font-medium text-blue-900">Console Instructions</h4>
+    <ul class="mt-2 text-sm text-blue-700 list-disc list-inside space-y-1">
+      <li>Click inside the console area to capture keyboard and mouse input</li>
+      <li>Press <kbd class="bg-blue-100 px-1 rounded">Esc</kbd> to release keyboard/mouse</li>
+      <li>Use the Ctrl+Alt+Del button to send that key combination</li>
+      <li>Click Fullscreen for a better viewing experience</li>
+    </ul>
+  </div>
+<% end %>
+
+<!-- noVNC via Skypack (properly bundled ES module) -->
+<script type="module">
+  import RFB from 'https://cdn.skypack.dev/@novnc/novnc@1.5.0';
+  window.RFB = RFB;
+  console.log('noVNC RFB loaded:', typeof RFB);
+</script>
+<script>
+(function() {
+  var rfb;
+
+  function connected(e) {
+    console.log("Connected to VNC");
+    document.getElementById('loading').style.display = 'none';
+  }
+
+  function disconnected(e) {
+    console.log("Disconnected from VNC");
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('loading').querySelector('p').textContent = 'Disconnected - Reconnecting...';
+  }
+
+  function credentials(e) {
+    var password = prompt("VNC Password Required:");
+    if (password) {
+      rfb.sendCredentials({ password: password });
+    } else {
+      rfb.disconnect();
+    }
+  }
+
+  function securityFailure(e) {
+    console.log("Security failure", e.detail);
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('loading').querySelector('p').textContent = 'Security failure - Check VNC configuration';
+  }
+
+  function getEndpoint() {
+    return 'ws://localhost:<%= @ws_port %>';
+  }
+
+  function initRFB() {
+    var screenElement = document.getElementById('screen');
+    var endpoint = getEndpoint();
+
+    console.log("Connecting to:", endpoint);
+    console.log("RFB available:", typeof RFB);
+
+    try {
+      rfb = new RFB(screenElement, endpoint, {
+        credentials: { password: '' },
+        shared: true,
+        showDotCursor: true,
+        reconnect: true,
+        reconnectDelay: 3000,
+        scaleViewport: true,
+        resizeSession: true
+      });
+
+      rfb.addEventListener('connect', connected);
+      rfb.addEventListener('disconnect', disconnected);
+      rfb.addEventListener('credentialsrequired', credentials);
+      rfb.addEventListener('securityfailure', securityFailure);
+    } catch (error) {
+      console.error('Failed to initialize RFB:', error);
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('loading').querySelector('p').textContent = 'Failed to connect: ' + error.message;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRFB);
+  } else {
+    initRFB();
+  }
+
+  document.getElementById('fullscreenBtn').addEventListener('click', function() {
+    var container = document.getElementById('console-container');
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().catch(function(err) {
+        console.error('Fullscreen error:', err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  document.getElementById('ctrlAltDelBtn').addEventListener('click', function() {
+    if (rfb) {
+      rfb.sendCtrlAltDel();
+    }
+  });
+})();
+</script>

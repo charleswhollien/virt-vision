@@ -1,0 +1,22 @@
+VirtVision Alert
+================
+
+Alert: <%= @alert.name %>
+Condition: <%= @alert.condition_type %>
+Resource: <%= @resource.name %>
+Status: <%= @resource.status %>
+
+<% if @resource.respond_to?(:cpu_count) %>
+CPU Count: <%= @resource.cpu_count %> cores
+<% end %>
+
+<% if @resource.respond_to?(:memory_mb) %>
+Memory: <%= number_to_human_size(@resource.memory_mb.to_i * 1024 * 1024) %>
+<% end %>
+
+<% if @resource.is_a?(Host) %>
+Connection: <%= @resource.connection_string %>
+<% end %>
+
+---
+This alert was triggered by VirtVision monitoring system.

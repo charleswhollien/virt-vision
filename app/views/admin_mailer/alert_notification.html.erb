@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+      .alert-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; }
+      .status { font-weight: bold; text-transform: uppercase; }
+      .status.running { color: #059669; }
+      .status.stopped { color: #dc2626; }
+      .status.paused { color: #d97706; }
+      .status.crashed { color: #dc2626; }
+      .status.online { color: #059669; }
+      .status.offline { color: #dc2626; }
+      .status.error { color: #dc2626; }
+      table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+      th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+      th { background: #f9fafb; }
+    </style>
+  </head>
+  <body>
+    <h2>VirtVision Alert</h2>
+
+    <div class="alert-box">
+      <strong>Alert:</strong> <%= @alert.name %><br>
+      <strong>Condition:</strong> <%= @alert.condition_type %><br>
+      <strong>Resource:</strong> <%= @resource.name %>
+    </div>
+
+    <table>
+      <tr>
+        <th>Property</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td><%= @resource.name %></td>
+      </tr>
+      <tr>
+        <td>Status</td>
+        <td class="status <%= @resource.status %>"><%= @resource.status %></td>
+      </tr>
+      <% if @resource.respond_to?(:cpu_count) %>
+      <tr>
+        <td>CPU Count</td>
+        <td><%= @resource.cpu_count %> cores</td>
+      </tr>
+      <% end %>
+      <% if @resource.respond_to?(:memory_mb) %>
+      <tr>
+        <td>Memory</td>
+        <td><%= number_to_human_size(@resource.memory_mb.to_i * 1024 * 1024) %></td>
+      </tr>
+      <% end %>
+      <% if @resource.is_a?(Host) %>
+      <tr>
+        <td>Connection</td>
+        <td><%= @resource.connection_string %></td>
+      </tr>
+      <% end %>
+    </table>
+
+    <p>
+      <a href="<%= Rails.application.routes.url_helpers.root_url %>">
+        View in VirtVision Dashboard
+      </a>
+    </p>
+
+    <hr>
+    <p style="color: #6b7280; font-size: 12px;">
+      This alert was triggered by VirtVision monitoring system.
+      <% if @alert.enabled %>
+        Alerts can be managed in the admin panel.
+      <% end %>
+    </p>
+  </body>
+</html>

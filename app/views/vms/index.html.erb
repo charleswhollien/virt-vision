@@ -1,0 +1,71 @@
+<% content_for :title, "Virtual Machines" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Virtual Machines</h1>
+  <div class="flex gap-3">
+    <%= link_to "All VMs", vms_path, class: "px-3 py-1.5 text-sm rounded-lg #{params[:status].blank? ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+    <%= link_to "Running", vms_path(status: "running"), class: "px-3 py-1.5 text-sm rounded-lg #{params[:status] == 'running' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+    <%= link_to "Stopped", vms_path(status: "stopped"), class: "px-3 py-1.5 text-sm rounded-lg #{params[:status] == 'stopped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+    <%= link_to "Paused", vms_path(status: "paused"), class: "px-3 py-1.5 text-sm rounded-lg #{params[:status] == 'paused' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}" %>
+  </div>
+</div>
+
+<div class="bg-white rounded-lg shadow">
+  <% if @vms.empty? %>
+    <div class="p-8 text-center">
+      <p class="text-gray-500">No virtual machines found</p>
+    </div>
+  <% else %>
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Host</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPU</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memory</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @vms.each do |vm| %>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <%= link_to vm.name, vm_path(vm), class: "text-blue-600 hover:underline font-medium" %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <%= link_to vm.host.name, host_path(vm.host), class: "text-gray-600 hover:text-gray-900" %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 text-xs rounded-full <%=
+                'bg-green-100 text-green-800' if vm.running? %> <%=
+                'bg-yellow-100 text-yellow-800' if vm.paused? %> <%=
+                'bg-red-100 text-red-800' if vm.stopped? || vm.crashed? %>">
+                <%= vm.status %>
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= vm.cpu_count %> cores</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= number_to_human_size(vm.memory_mb.to_i * 1024 * 1024) %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <% if vm.last_updated_at %>
+                <%= time_ago_in_words(vm.last_updated_at) %> ago
+              <% else %>
+                Never
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <%= link_to "View", vm_path(vm), class: "text-blue-600 hover:text-blue-900 mr-3" %>
+              <% if vm.running? %>
+                <%= link_to "Console", console_vm_path(vm), class: "text-purple-600 hover:text-purple-900 mr-3" %>
+                <%= button_to "Stop", shutdown_vm_path(vm), method: :post, class: "text-red-600 hover:text-red-900 inline", form: { data: { confirm: "Shutdown #{vm.name}?" } } %>
+              <% elsif vm.stopped? %>
+                <%= button_to "Start", start_vm_path(vm), method: :post, class: "text-green-600 hover:text-green-900 inline" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

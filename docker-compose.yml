@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Main Rails application
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - app-db:/rails/db
+      - app-storage:/rails/storage
+      # Mount SSH keys for VNC console tunneling (adjust path as needed)
+      - ~/.ssh:/home/rails/.ssh:ro
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # SolidQueue for background jobs (host sync, alerts)
+  solid_queue:
+    build: .
+    command: bin/rails solid_queue:start
+    volumes:
+      - app-db:/rails/db
+      - app-storage:/rails/storage
+      - ~/.ssh:/home/rails/.ssh:ro
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  app-db:
+  app-storage:

@@ -1,0 +1,38 @@
+<% content_for :title, "Login" %>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <div class="flex justify-center">
+        <svg class="h-12 w-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">VirtVision</h2>
+      <p class="mt-2 text-center text-sm text-gray-600">KVM/Libvirt Monitoring</p>
+    </div>
+
+    <%= form_with url: login_path, method: :post, local: true, class: "mt-8 space-y-6" do |f| %>
+      <div class="rounded-md shadow-sm -space-y-px">
+        <div class="mb-4">
+          <%= f.label :email, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.email_field :email, required: true, autofocus: true, class: "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder: "admin@example.com" %>
+        </div>
+        <div>
+          <%= f.label :password, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.password_field :password, required: true, class: "appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm", placeholder: "Password" %>
+        </div>
+      </div>
+
+      <% if flash[:alert] %>
+        <div class="rounded-md bg-red-50 p-4">
+          <p class="text-sm text-red-800"><%= flash[:alert] %></p>
+        </div>
+      <% end %>
+
+      <div>
+        <%= f.submit "Sign In", class: "group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

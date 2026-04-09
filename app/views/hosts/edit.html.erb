@@ -1,0 +1,62 @@
+<% content_for :title, "Edit Host" %>
+
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <%= link_to "&larr; Back to Hosts".html_safe, hosts_path, class: "text-blue-600 hover:underline" %>
+  </div>
+
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Edit Host: <%= @host.name %></h1>
+
+  <% if @host.errors.any? %>
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+      <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+        <% @host.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= form_with model: @host, local: true, class: "space-y-4" do |f| %>
+      <div>
+        <%= f.label :name, "Display Name", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        <% if @host.errors[:name].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:name].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :hostname, "Hostname or IP", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :hostname, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        <% if @host.errors[:hostname].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:hostname].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :ssh_user, "SSH Username", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :ssh_user, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+        <% if @host.errors[:ssh_user].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @host.errors[:ssh_user].first %></p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :ssh_key_path, "SSH Key Path", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :ssh_key_path, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+
+      <div>
+        <%= f.label :connection_uri, "Connection URI", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :connection_uri, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+      </div>
+
+      <div class="pt-4">
+        <%= f.submit "Update Host", class: "w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

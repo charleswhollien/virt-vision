@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  uuid: MyString
+  name: MyString
+  host: one
+  status: MyString
+  cpu_count: 1
+  memory_mb: 1
+  disk_info: MyText
+  network_info: MyText
+  last_updated_at: 2026-03-29 15:09:44
+
+two:
+  uuid: MyString
+  name: MyString
+  host: two
+  status: MyString
+  cpu_count: 1
+  memory_mb: 1
+  disk_info: MyText
+  network_info: MyText
+  last_updated_at: 2026-03-29 15:09:44
