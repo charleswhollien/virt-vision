@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   # Main Rails application
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - app-db:/rails/db
       - app-storage:/rails/storage
@@ -15,6 +13,9 @@ services:
       - RAILS_ENV=production
       - SECRET_KEY_BASE=${SECRET_KEY_BASE}
       - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - APP_HOST=localhost
+      - FORCE_SSL=false
+      - ASSUME_SSL=false
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]

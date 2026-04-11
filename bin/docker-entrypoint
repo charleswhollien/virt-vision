@@ -6,9 +6,19 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# If running a rails command, ensure the database is ready
+if [ "$1" == "bin/rails" ] || [ "$1" == "./bin/rails" ]; then
   ./bin/rails db:prepare
+  ./bin/rails runner "
+    u = User.find_or_create_by!(email: 'admin@localhost') do |user|
+      user.name = 'Admin'
+      user.password = 'admin123'
+      user.password_confirmation = 'admin123'
+    end
+    unless u.authenticate('admin123')
+      u.update!(password: 'admin123', password_confirmation: 'admin123')
+    end
+  " 2>/dev/null || true
 fi
 
-exec "${@}"
+exec "$@"
